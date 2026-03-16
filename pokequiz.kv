@@ -1,0 +1,105 @@
+#:kivy 2.3.1
+
+<MainScreen>
+    background_color: (1, 1, 1, 1)
+    canvas:
+        # BorderImage:
+        #     source: "assets/pillars.png"
+        #     pos: self.pos
+        #     size: self.size
+    BoxLayout:
+        id: main_layout
+        background_color: (1, 1, 1, 1)
+        orientation: "vertical"
+        Label:
+            # canvas.before:
+            #     Color:
+            #         rgba: (.5, .1, .1, 1)
+            #     Rectangle:
+            #         pos: self.pos
+            #         size: self.size
+            id: "number"
+            text: str(app.question_no)
+            pos_hint: {"center_x": .5}
+            size_hint: .2, .4
+            texture_size: self.width * .8, self.height * .8
+            text_size: self.texture_size
+            halign: "center"
+            valign: "bottom"
+            font_size: self.height * .4
+            bold: True
+        Label:
+            # canvas.before:
+            #     Color:
+            #         rgba: (.1, .5, .1, 1)
+            #     Rectangle:
+            #         pos: self.pos
+            #         size: self.size
+            id: "entry_version"
+            text: app.q_version
+            pos_hint: {"center_x": .5}
+            size_hint: .8, .4
+            texture_size: self.width * .8, self.height * .8
+            text_size: self.texture_size
+            halign: "center"
+            valign: "bottom"
+            font_size: self.height * .32
+            italic: True
+        Label:
+            # canvas.before:
+            #     Color:
+            #         rgba: (.1, .1, .5, 1)
+            #     Rectangle:
+            #         pos: self.pos
+            #         size: self.size
+            id:"question"
+            text: app.q_text
+            pos_hint: {"center_x": .5}
+            size_hint: 1, 1
+            halign: "center"
+            valign: "center"
+            texture_size: self.width * .6, self.height
+            text_size: self.texture_size
+            font_size: self.height * .12
+        BoxLayout:
+            # canvas.before:
+            #     Color:
+            #         rgba: (.35, .35, .35, 1)
+            #     Rectangle:
+            #         pos: self.pos
+            #         size: self.size
+            # orientation: "horizontal"
+            pos_hint: {"center_x": .5}
+            size_hint: .96, 1
+            ShinyButton:
+                id: answer_button_0
+            ShinyButton:
+                id: answer_button_1
+            ShinyButton:
+                id: answer_button_2
+            ShinyButton:
+                id: answer_button_3
+        BoxLayout:
+            orientation: "horizontal"
+            Label:
+                id:"score"
+                text: "Score: " + str(app.score)
+                pos_hint: {"center_x": .5}
+                size_hint: 1, 1
+
+
+<ShinyButton>
+    id: option
+    background_color: root.bg_color
+    pos_hint: {"center_x": .5 , "center_y": .5}
+    size_hint: 1, 1
+    text_size: self.width, self.height * .9
+    halign: "center"
+    valign: "bottom"
+    text: root.option_name
+    AsyncImage:
+        source: root.img_source
+        texture_size: self.width, self.height * .6
+        center_x: self.parent.center_x
+        top: self.parent.top - self.height * .1
+        size_hint: .6, .6

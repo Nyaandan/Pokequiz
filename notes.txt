@@ -1,0 +1,1 @@
+Label text_size is the bounding box, use with self.size

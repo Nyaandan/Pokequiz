@@ -1,0 +1,41 @@
+PokeQuiz
+
+relevant data:
+pokemon => species, sprites
+pokemon-species => flavor_text_entries, genera, names
+types => pokemon
+
+en bref:
+- choose a random pokemon to be the answer (rand 1-1350)
+- select one pokedex entry at random (keep the version name)
+- look for other answer choices based on its type
+- fetch everyone's sprites
+
+process:
+settings
+    user chooses sprite version (ver) and locale (loc)
+select target answer
+    random number n
+get pokemon data (name, genus, sprite, dex entry)
+    fetch api/pokemon/n => pokemon_data
+    fetch pokemon_data["sprites"][ver] => pokemon_sprite
+    fetch pokemon_data["species"][url] => pokemon_species
+    get pokemon_species["flavor_text_entries"][rand k] => dex_entry
+    entry, version = dex_entry["flavor_text"], dex_entry["version"]["name"]
+    get pokemon_species["genera"] => genera
+    get genus in specified locale
+    * genus["genus"] for genus in genera if genus["language"]["name"] == loc
+    get name in specified locale
+    * name["name"] for name in names if name["language"]["name"] == loc
+get 3 other choices
+    fetch pokemon_data["types"][0]["type"]["url"] => type_data
+    get type_data["pokemon"][rand k] => pokemon_k_data
+    get pokemon_data["sprites"][ver] => pokemon_k_sprite
+    ensure all 4 are different
+    * compare pokemon_data["id"]
+shuffle choices
+present data
+
+links:
+https://pokeapi.co/docs/v2
+https://pokeapi.co/api/v2/
