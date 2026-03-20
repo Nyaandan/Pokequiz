@@ -182,7 +182,7 @@ def format_question_data(question_data):
     formatted += f"Answer: {question_data['answer']}\n"
     return formatted
 
-DEBUG = True
+DEBUG = False
 DEBUG_GAME = False
 
 if __name__ == "__main__":
