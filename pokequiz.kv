@@ -1,5 +1,52 @@
 #:kivy 2.3.1
 
+<MenuScreen>
+    BoxLayout:
+        orientation: "vertical"
+        padding: 20
+        spacing: 20
+
+        Label:
+            text: "PokeQuiz"
+            font_size: 48
+            size_hint_y: .25
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+
+        Label:
+            text: "Choose how many questions to play:"
+            size_hint_y: .15
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+
+        BoxLayout:
+            orientation: "vertical"
+            spacing: 10
+            size_hint_y: .6
+
+            Button:
+                text: "4 questions"
+                on_release: app.set_mode("4")
+
+            Button:
+                text: "10 questions"
+                on_release: app.set_mode("10")
+
+            Button:
+                text: "20 questions"
+                on_release: app.set_mode("20")
+
+            Button:
+                text: "Indefinite (last 5 shown)"
+                on_release: app.set_mode("indefinite")
+
+        Button:
+            text: "Settings"
+            size_hint_y: .12
+            on_release: app.open_settings_screen()
+
 <MainScreen>
     background_color: (1, 1, 1, 1)
     canvas:
@@ -11,6 +58,14 @@
         id: main_layout
         background_color: (1, 1, 1, 1)
         orientation: "vertical"
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: .08
+            spacing: 10
+            padding: 10
+            Button:
+                text: "Menu"
+                on_release: app.open_menu()
         Label:
             # canvas.before:
             #     Color:
@@ -55,7 +110,7 @@
             id:"question"
             text: app.q_text
             pos_hint: {"center_x": .5}
-            size_hint: 1, 1
+            size_hint: 1, .92
             halign: "center"
             valign: "center"
             texture_size: self.width * .6, self.height
@@ -80,12 +135,20 @@
             ShinyButton:
                 id: answer_button_3
         BoxLayout:
-            orientation: "horizontal"
+            size_hint: 1, .18
+            orientation: "vertical"
             Label:
                 id:"score"
-                text: "Score: " + str(app.score)
+                text: app.score_label_text
                 pos_hint: {"center_x": .5}
-                size_hint: 1, 1
+                size_hint: 1, .35
+
+            GridLayout:
+                id: scorebox_grid
+                cols: 1
+                rows: 1
+                size_hint: 1, .65
+                spacing: 2
 
 
 <ShinyButton>
@@ -103,3 +166,30 @@
         center_x: self.parent.center_x
         top: self.parent.top - self.height * .1
         size_hint: .6, .6
+
+
+<ScoreCell>
+    size_hint: 1, 1
+    canvas.before:
+        Color:
+            rgba: root.cell_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<SettingsScreen>
+    BoxLayout:
+        orientation: "vertical"
+        padding: 20
+        spacing: 20
+        Label:
+            text: "Settings (coming soon)"
+            font_size: 32
+            halign: "center"
+            valign: "middle"
+            text_size: self.size
+        BoxLayout:
+            size_hint_y: .2
+            Button:
+                text: "Back to menu"
+                on_release: app.open_menu()
