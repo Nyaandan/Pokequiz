@@ -1,7 +1,87 @@
+import os
+from pathlib import Path
+
+
+def _font_search_dirs() -> list[Path]:
+    dirs: list[Path] = []
+    if os.name == "nt":
+        windir = os.environ.get("WINDIR", r"C:\Windows")
+        dirs.append(Path(windir) / "Fonts")
+    else:
+        dirs.extend(
+            [
+                Path("/Library/Fonts"),
+                Path("/System/Library/Fonts"),
+                Path("/System/Library/Fonts/Supplemental"),
+            ]
+        )
+    return [d for d in dirs if d.is_dir()]
+
+
+def _first_font(*candidates: str) -> Path | None:
+    for base in _font_search_dirs():
+        for name in candidates:
+            p = base / name
+            if p.is_file():
+                return p
+    return None
+
+
+def _first_sitka_semibold() -> Path | None:
+    """
+    Prefer Sitka Semibold (Windows: often 'Sitka Text Semibold.ttf' or similar).
+    Uses glob so minor filename differences still match.
+    """
+    for base in _font_search_dirs():
+        # Prefer .ttf, then .ttc (collection; Kivy may use first face).
+        for pattern in ("sitka*semibold*.ttf", "sitka*semibold*.ttc"):
+            try:
+                matches = sorted(base.glob(pattern))
+            except OSError:
+                continue
+            for p in matches:
+                if p.is_file():
+                    return p
+    return _first_font(
+        "Sitka Text Semibold.ttf",
+        "SitkaText-Semibold.ttf",
+        "SitkaTextSemibold.ttf",
+        "Sitka Semibold.ttf",
+    )
+
+
+def _apply_default_ui_font() -> None:
+    """
+    Set Kivy default font to Sitka Semibold when available, else Arial.
+    Must run before importing kivy.app (and most other Kivy modules).
+    """
+    sitka_semibold = _first_sitka_semibold()
+    arial = _first_font(
+        "arial.ttf",
+        "ARIAL.TTF",
+        "Arial.ttf",
+    )
+    chosen = sitka_semibold or arial
+    if chosen is None:
+        return
+
+    path = str(chosen.resolve())
+    from kivy.config import Config
+
+    # [family_name, regular, italic, bold, bolditalic] — single-file fallback for styles
+    Config.set("kivy", "default_font", ["PokeQuizUI", path, path, path, path])
+
+
+_apply_default_ui_font()
+
+import random
 import test_data
 from data_collector import get_question
 from kivy.app import App
 from kivy.clock import Clock
+from kivy.factory import Factory
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.image import Image
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
@@ -13,6 +93,126 @@ selection_color = (.8, .4, 0, .8)
 answer_color = (.1, .8, .4, .8)
 incorrect_color = (.8, .1, .1, .8)
 unset_color = (.7, .7, .7, .2)
+
+# Diagonal drift (bottom-left → top-right): equal x/y step in screen space.
+_SQRT2_INV = 0.7071067811865476
+
+
+class ParticleBackdrop(FloatLayout):
+    """
+    Full-screen background image plus drifting particle layers.
+    Use particle_variant 'l' or 's' to pick assets/bg/particles_*_{l|s}.png for all colors.
+    """
+
+    particle_variant = StringProperty("l")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.size_hint = (1, 1)
+        self._tick_event = None
+        self._sprites = []
+        self._started = False
+
+        bg = Image(
+            source="assets/bg/background.png",
+            allow_stretch=True,
+            keep_ratio=False,
+            fit_mode="fill",
+        )
+        bg.size_hint = (1, 1)
+        self.add_widget(bg)
+
+        self.bind(size=self._try_start_particles)  # type: ignore[attr-defined]
+
+    def on_parent(self, *args):
+        if self.parent is None and self._tick_event is not None:
+            self._tick_event.cancel()
+            self._tick_event = None
+
+    def _try_start_particles(self, *args):
+        if self._started or self.width <= 0 or self.height <= 0:
+            return
+        self._started = True
+        self._spawn_particles()
+        if self._tick_event is None:
+            self._tick_event = Clock.schedule_interval(self._tick, 1 / 60.0)
+
+    def _spawn_particles(self):
+        for s in self._sprites:
+            self.remove_widget(s["img"])
+        self._sprites.clear()
+
+        path = "assets/bg/"
+        prefix = "particle_"
+        suffix = f"_{self.particle_variant}"
+        # Two layers per color, different speeds (px/s).
+        configs = [
+            (f"{path}{prefix}red{suffix}.png", 38),
+            (f"{path}{prefix}red{suffix}.png", 74),
+            (f"{path}{prefix}green{suffix}.png", 52),
+            (f"{path}{prefix}green{suffix}.png", 91),
+            (f"{path}{prefix}blue{suffix}.png", 46),
+            (f"{path}{prefix}blue{suffix}.png", 108),
+        ]
+
+        for src, speed in configs:
+            img = Image(source=src, fit_mode="contain", opacity=0.9)
+            img.size_hint = (None, None)
+            self.add_widget(img)
+            sprite = {"img": img, "speed": float(speed), "pos": [0.0, 0.0]}
+            self._sprites.append(sprite)
+            img.bind(texture=lambda inst, tex, sp=sprite: self._on_particle_texture(sp))  # type: ignore[attr-defined]
+
+    def _on_particle_texture(self, sprite):
+        self._apply_particle_size(sprite["img"])
+        self._randomize_bottom_left(sprite)
+
+    def _apply_particle_size(self, img: Image) -> None:
+        if self.width <= 0 or self.height <= 0:
+            return
+        tw, th = img.texture_size
+        if tw <= 0 or th <= 0:
+            return
+        w, h = self.width, self.height
+        scale = min(w * 0.42 / tw, h * 0.42 / th, 2.2)
+        img.width = tw * scale
+        img.height = th * scale
+
+    def _randomize_bottom_left(self, sprite: dict) -> None:
+        img = sprite["img"]
+        iw = img.width or 1
+        ih = img.height or 1
+        w, h = self.width, self.height
+        sprite["pos"] = [
+            random.uniform(-iw * 1.1, w * 0.45),
+            random.uniform(-ih * 1.1, h * 0.45),
+        ]
+        img.pos = (sprite["pos"][0], sprite["pos"][1])
+
+    def _tick(self, dt: float) -> None:
+        if not self._sprites or self.width <= 0:
+            return
+        W, H = self.width, self.height
+        for s in self._sprites:
+            img = s["img"]
+            if img.width <= 0 or img.height <= 0:
+                if img.texture:
+                    self._apply_particle_size(img)
+                else:
+                    continue
+            sp = s["speed"]
+            x = s["pos"][0] + sp * dt * _SQRT2_INV
+            y = s["pos"][1] + sp * dt * _SQRT2_INV
+            s["pos"][0] = x
+            s["pos"][1] = y
+            img.pos = (x, y)
+            iw, ih = img.width, img.height
+            # Off past top-right: respawn toward bottom-left.
+            if x > W + iw * 0.35 and y > H + ih * 0.35:
+                self._randomize_bottom_left(s)
+
+
+Factory.register("ParticleBackdrop", cls=ParticleBackdrop)
 
 
 class ScoreCell(BoxLayout):
@@ -45,7 +245,7 @@ class ScoreCell(BoxLayout):
         else:
             self.cell_color = list(unset_color)
 
-class MainScreen(Screen):
+class GameScreen(Screen):
     pass
 
 class MenuScreen(Screen):
@@ -56,7 +256,7 @@ class SettingsScreen(Screen):
 
 # Class for the quiz buttons
 class ShinyButton(Button):
-    img_source = StringProperty("assets/blank.png")
+    img_source = StringProperty("assets/test/blank.png")
     option_name = StringProperty("")
     bg_color = ColorProperty((.7, .7, .7, .5))
 
@@ -99,7 +299,7 @@ class PokeQuizApp(App):
     # Created/managed dynamically to support variable scorebox sizes.
     scorebox_cells = []
     scorebox_grid = None
-    main_screen_ref = None
+    game_screen_ref = None
     sm = None
 
     _pending_continue_event = None
@@ -117,17 +317,17 @@ class PokeQuizApp(App):
         sm = ScreenManager()
         self.sm = sm
         menu_screen = MenuScreen(name="menu")
-        main_screen = MainScreen(name="main")
+        game_screen = GameScreen(name="game")
         settings_screen = SettingsScreen(name="settings")
         sm.add_widget(menu_screen)
-        sm.add_widget(main_screen)
+        sm.add_widget(game_screen)
         sm.add_widget(settings_screen)
-        self.main_screen_ref = main_screen
-        self.scorebox_grid = main_screen.ids.get("scorebox_grid")
+        self.game_screen_ref = game_screen
+        self.scorebox_grid = game_screen.ids.get("scorebox_grid")
 
         self.buttons = []
         for i in range(4):
-            btn = sm.get_screen("main").ids[f"answer_button_{i}"]
+            btn = sm.get_screen("game").ids[f"answer_button_{i}"]
             btn.bind(on_release=lambda instance, idx=i: self.receive_answer(idx))
             btn.disabled = True  # enabled when a mode is selected
             self.buttons.append(btn)
@@ -170,7 +370,7 @@ class PokeQuizApp(App):
 
         # Switch to the game UI.
         if self.sm is not None:
-            self.sm.current = "main"
+            self.sm.current = "game"
 
         self.continue_game_loop()
 

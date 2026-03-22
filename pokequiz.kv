@@ -1,171 +1,190 @@
 #:kivy 2.3.1
+#:import dp kivy.metrics.dp
 
 <MenuScreen>
-    BoxLayout:
-        orientation: "vertical"
-        padding: 20
-        spacing: 20
-
-        Label:
-            text: "PokeQuiz"
-            font_size: 48
-            size_hint_y: .25
-            halign: "center"
-            valign: "middle"
-            text_size: self.size
-
-        Label:
-            text: "Choose how many questions to play:"
-            size_hint_y: .15
-            halign: "center"
-            valign: "middle"
-            text_size: self.size
-
+    background_color: 0, 0, 0, 0
+    FloatLayout:
+        ParticleBackdrop:
+            particle_variant: "l"
         BoxLayout:
             orientation: "vertical"
-            spacing: 10
-            size_hint_y: .6
+            padding: 20
+            spacing: 20
+            size_hint: .9, .9
+            pos_hint: {"center_x": .5, "center_y": .5}
 
-            Button:
-                text: "4 questions"
-                on_release: app.set_mode("4")
-
-            Button:
-                text: "10 questions"
-                on_release: app.set_mode("10")
-
-            Button:
-                text: "20 questions"
-                on_release: app.set_mode("20")
-
-            Button:
-                text: "Indefinite (last 5 shown)"
-                on_release: app.set_mode("indefinite")
-
-        Button:
-            text: "Settings"
-            size_hint_y: .12
-            on_release: app.open_settings_screen()
-
-<MainScreen>
-    background_color: (1, 1, 1, 1)
-    canvas:
-        # BorderImage:
-        #     source: "assets/pillars.png"
-        #     pos: self.pos
-        #     size: self.size
-    BoxLayout:
-        id: main_layout
-        background_color: (1, 1, 1, 1)
-        orientation: "vertical"
-        BoxLayout:
-            orientation: "horizontal"
-            size_hint_y: .08
-            spacing: 10
-            padding: 10
-            Button:
-                text: "Menu"
-                on_release: app.open_menu()
-        Label:
-            # canvas.before:
-            #     Color:
-            #         rgba: (.5, .1, .1, 1)
-            #     Rectangle:
-            #         pos: self.pos
-            #         size: self.size
-            id: "number"
-            text: str(app.question_no)
-            pos_hint: {"center_x": .5}
-            size_hint: .2, .4
-            texture_size: self.width * .8, self.height * .8
-            text_size: self.texture_size
-            halign: "center"
-            valign: "bottom"
-            font_size: self.height * .4
-            bold: True
-        Label:
-            # canvas.before:
-            #     Color:
-            #         rgba: (.1, .5, .1, 1)
-            #     Rectangle:
-            #         pos: self.pos
-            #         size: self.size
-            id: "entry_version"
-            text: app.q_version
-            pos_hint: {"center_x": .5}
-            size_hint: .8, .4
-            texture_size: self.width * .8, self.height * .8
-            text_size: self.texture_size
-            halign: "center"
-            valign: "bottom"
-            font_size: self.height * .32
-            italic: True
-        Label:
-            # canvas.before:
-            #     Color:
-            #         rgba: (.1, .1, .5, 1)
-            #     Rectangle:
-            #         pos: self.pos
-            #         size: self.size
-            id:"question"
-            text: app.q_text
-            pos_hint: {"center_x": .5}
-            size_hint: 1, .92
-            halign: "center"
-            valign: "center"
-            texture_size: self.width * .6, self.height
-            text_size: self.texture_size
-            font_size: self.height * .12
-        BoxLayout:
-            # canvas.before:
-            #     Color:
-            #         rgba: (.35, .35, .35, 1)
-            #     Rectangle:
-            #         pos: self.pos
-            #         size: self.size
-            # orientation: "horizontal"
-            pos_hint: {"center_x": .5}
-            size_hint: .96, 1
-            ShinyButton:
-                id: answer_button_0
-            ShinyButton:
-                id: answer_button_1
-            ShinyButton:
-                id: answer_button_2
-            ShinyButton:
-                id: answer_button_3
-        BoxLayout:
-            size_hint: 1, .18
-            orientation: "vertical"
             Label:
-                id:"score"
-                text: app.score_label_text
-                pos_hint: {"center_x": .5}
-                size_hint: 1, .35
+                text: "PokeQuiz"
+                font_size: 48
+                size_hint_y: .25
+                halign: "center"
+                valign: "middle"
+                text_size: self.size
 
-            GridLayout:
-                id: scorebox_grid
-                cols: 1
-                rows: 1
-                size_hint: 1, .65
-                spacing: 2
+            Label:
+                text: "Choose how many questions to play:"
+                size_hint_y: .15
+                halign: "center"
+                valign: "middle"
+                text_size: self.size
+
+            BoxLayout:
+                orientation: "vertical"
+                spacing: 10
+                size_hint_y: .6
+
+                Button:
+                    text: "4 questions"
+                    on_release: app.set_mode("4")
+
+                Button:
+                    text: "10 questions"
+                    on_release: app.set_mode("10")
+
+                Button:
+                    text: "20 questions"
+                    on_release: app.set_mode("20")
+
+                Button:
+                    text: "Indefinite (last 5 shown)"
+                    on_release: app.set_mode("indefinite")
+
+            Button:
+                text: "Settings"
+                size_hint_y: .12
+                on_release: app.open_settings_screen()
+
+<GameScreen>
+    background_color: 0, 0, 0, 0
+    FloatLayout:
+        ParticleBackdrop:
+            particle_variant: "l"
+        FloatLayout:
+            size_hint: 1, 1
+            BoxLayout:
+                id: main_layout
+                background_color: (1, 1, 1, 1)
+                orientation: "vertical"
+                size_hint: .9, .9
+                pos_hint: {"center_x": .5, "center_y": .5}
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: .08
+                    padding: 4
+                    Widget:
+                    Button:
+                        text: "Back to menu"
+                        size_hint: None, None
+                        width: dp(110)
+                        height: dp(42)
+                        on_release: app.open_menu()
+                Label:
+                    # canvas.before:
+                    #     Color:
+                    #         rgba: (.5, .1, .1, 1)
+                    #     Rectangle:
+                    #         pos: self.pos
+                    #         size: self.size
+                    id: "number"
+                    text: str(app.question_no)
+                    pos_hint: {"center_x": .5}
+                    size_hint: .25, .06
+                    texture_size: self.size
+                    text_size: self.texture_size
+                    halign: "center"
+                    valign: "center"
+                    font_size: self.height * .8
+                    bold: True
+                Label:
+                    # canvas.before:
+                    #     Color:
+                    #         rgba: (.1, .5, .1, 1)
+                    #     Rectangle:
+                    #         pos: self.pos
+                    #         size: self.size
+                    id: "entry_version"
+                    text: app.q_version
+                    pos_hint: {"center_x": .5}
+                    size_hint: .5, .08
+                    texture_size: self.size
+                    text_size: self.texture_size
+                    halign: "center"
+                    valign: "middle"
+                    font_size: self.height * .64
+                    italic: True
+                Label:
+                    # canvas.before:
+                    #     Color:
+                    #         rgba: (.1, .1, .5, 1)
+                    #     Rectangle:
+                    #         pos: self.pos
+                    #         size: self.size
+                    id:"question"
+                    bold: True
+                    text: app.q_text
+                    pos_hint: {"center_x": .5}
+                    size_hint: .84, .24
+                    halign: "center"
+                    valign: "center"
+                    texture_size: self.size
+                    text_size: self.texture_size
+                    font_size: self.height * .14
+                BoxLayout:
+                    # canvas.before:
+                    #     Color:
+                    #         rgba: (.35, .35, .35, 1)
+                    #     Rectangle:
+                    #         pos: self.pos
+                    #         size: self.size
+                    orientation: "horizontal"
+                    pos_hint: {"center_x": .5}
+                    size_hint: .86, .24
+                    spacing: dp(4)
+                    ShinyButton:
+                        id: answer_button_0
+                    ShinyButton:
+                        id: answer_button_1
+                    ShinyButton:
+                        id: answer_button_2
+                    ShinyButton:
+                        id: answer_button_3
+                BoxLayout:
+                    size_hint: 1, .18
+                    orientation: "vertical"
+                    GridLayout:
+                        id: scorebox_grid
+                        cols: 1
+                        rows: 1
+                        pos_hint: {"center_x": .5, "center_y": .6}
+                        size_hint: 1, .6
+                        padding: [dp(8)]
+                        spacing: dp(2)
+                    Label:
+                        id:"score"
+                        text: app.score_label_text
+                        pos_hint: {"center_x": .5, "center_y": .2}
+                        size_hint: 1, .2
+                
+
 
 
 <ShinyButton>
     id: option
     background_color: root.bg_color
     pos_hint: {"center_x": .5 , "center_y": .5}
-    size_hint: 1, 1
+    size_hint: .23, 1
+    width: self.parent.width * .23
+    height: self.width * .67
     text_size: self.width, self.height * .9
     halign: "center"
     valign: "bottom"
     text: root.option_name
     AsyncImage:
         source: root.img_source
-        texture_size: self.width, self.height * .6
+        texture_size: self.parent.size
+        fit_mode: "contain"
         center_x: self.parent.center_x
-        top: self.parent.top - self.height * .1
-        size_hint: .6, .6
+        center_y: self.parent.center_y + self.height * .1
 
 
 <ScoreCell>
@@ -178,18 +197,24 @@
             size: self.size
 
 <SettingsScreen>
-    BoxLayout:
-        orientation: "vertical"
-        padding: 20
-        spacing: 20
-        Label:
-            text: "Settings (coming soon)"
-            font_size: 32
-            halign: "center"
-            valign: "middle"
-            text_size: self.size
+    background_color: 0, 0, 0, 0
+    FloatLayout:
+        ParticleBackdrop:
+            particle_variant: "l"
         BoxLayout:
-            size_hint_y: .2
-            Button:
-                text: "Back to menu"
-                on_release: app.open_menu()
+            orientation: "vertical"
+            padding: 20
+            spacing: 20
+            size_hint: .9, .9
+            pos_hint: {"center_x": .5, "center_y": .5}
+            Label:
+                text: "Settings (coming soon)"
+                font_size: 32
+                halign: "center"
+                valign: "middle"
+                text_size: self.size
+            BoxLayout:
+                size_hint_y: .2
+                Button:
+                    text: "Back to menu"
+                    on_release: app.open_menu()
