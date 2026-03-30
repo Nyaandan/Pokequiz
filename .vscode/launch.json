@@ -12,10 +12,11 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Python Debugger: Data Collector",
+            "name": "Python Debugger: Module src",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/data_collector.py",
+            "module": "src",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         }
     ]

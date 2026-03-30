@@ -1,4 +1,4 @@
-"""Run PokeQuiz from the project root (development entrypoint)."""
+"""Allow `python -m src` from the project root."""
 
 from src.app import PokeQuizApp
 
